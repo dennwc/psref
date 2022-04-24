@@ -1,2 +1,3 @@
 # psref
-(Unofficial) Lenovo PSREF client
+
+Unofficial client for [Lenovo PSREF](https://psref.lenovo.com/).
