@@ -3,10 +3,20 @@ package psref
 import (
 	"context"
 	"encoding/json"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
+)
+
+var (
+	debug      = os.Getenv("PSREF_DEBUG") == "true"
+	testClient = NewClient(clientOptionFunc(func(c *Client) {
+		if debug {
+			c.debug = os.Stderr
+		}
+	}))
 )
 
 func testLogData(t testing.TB, v interface{}) {
@@ -17,24 +27,21 @@ func testLogData(t testing.TB, v interface{}) {
 }
 
 func TestProductTypes(t *testing.T) {
-	c := NewClient(nil)
-	types, err := c.Products(context.Background())
+	types, err := testClient.Products(context.Background())
 	require.NoError(t, err)
 	require.NotEmpty(t, types)
 	testLogData(t, types)
 }
 
 func TestWithdrawnProductTypes(t *testing.T) {
-	c := NewClient(nil)
-	types, err := c.WithdrawnProducts(context.Background())
+	types, err := testClient.WithdrawnProducts(context.Background())
 	require.NoError(t, err)
 	require.NotEmpty(t, types)
 	testLogData(t, types)
 }
 
 func TestUpdates(t *testing.T) {
-	c := NewClient(nil)
-	resp, err := c.Updates(context.Background())
+	resp, err := testClient.Updates(context.Background())
 	require.NoError(t, err)
 	testLogData(t, resp)
 	t.Logf("%q", resp.VersionTitle)
@@ -48,8 +55,7 @@ func TestUpdates(t *testing.T) {
 }
 
 func TestProductByID(t *testing.T) {
-	c := NewClient(nil)
-	p, err := c.ProductByID(context.Background(), 1234)
+	p, err := testClient.ProductByID(context.Background(), 1234)
 	require.NoError(t, err)
 	require.Equal(t, "Lenovo_Legion_5P_15IMH05H", p.Key)
 	require.Greater(t, len(p.Models), 100)
@@ -57,8 +63,7 @@ func TestProductByID(t *testing.T) {
 }
 
 func TestModelByID(t *testing.T) {
-	c := NewClient(nil)
-	p, err := c.ModelByID(context.Background(), 1234, "82AW006JRK")
+	p, err := testClient.ModelByID(context.Background(), 1234, "82AW006JRK")
 	require.NoError(t, err)
 	require.Equal(t, "Lenovo_Legion_5P_15IMH05H", p.Key)
 	require.Greater(t, len(p.Detail), 30)
@@ -66,8 +71,7 @@ func TestModelByID(t *testing.T) {
 }
 
 func TestModelByCode(t *testing.T) {
-	c := NewClient(nil)
-	p, err := c.ModelByCode(context.Background(), "82AK0002US")
+	p, err := testClient.ModelByCode(context.Background(), "82AK0002US")
 	require.NoError(t, err)
 	require.Equal(t, "Lenovo_Flex_5G_14Q8CX05", p.Key)
 	require.Greater(t, len(p.Detail), 30)
@@ -75,8 +79,7 @@ func TestModelByCode(t *testing.T) {
 }
 
 func TestProductByModelCode(t *testing.T) {
-	c := NewClient(nil)
-	p, err := c.ProductByModelCode(context.Background(), "82AK0002US")
+	p, err := testClient.ProductByModelCode(context.Background(), "82AK0002US")
 	require.NoError(t, err)
 	require.Equal(t, PID(1163), p.ID)
 	require.Equal(t, "Lenovo_Flex_5G_14Q8CX05", p.Key)

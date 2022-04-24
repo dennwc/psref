@@ -8,10 +8,11 @@ import (
 	"time"
 )
 
-type (
-	PID       uint64
-	ModelCode string
-)
+// PID is a numeric PSREF product ID.
+type PID uint64
+
+// ModelCode is an alphanumeric product code.
+type ModelCode string
 
 var (
 	_ json.Marshaler   = Date{}
@@ -22,6 +23,7 @@ func normalizeURL(s string) string {
 	return strings.ReplaceAll(s, "\\", "/")
 }
 
+// Date is wrapper around time.Time which uses custom JSON encoding.
 type Date time.Time
 
 func (d *Date) UnmarshalJSON(data []byte) error {
@@ -42,6 +44,7 @@ func (d Date) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+// ProductType is a top-level product type which includes multiple product lineups.
 type ProductType struct {
 	Name    string        `json:"ClassificationName"`
 	BgColor string        `json:"BackgroundColor"`
@@ -59,6 +62,7 @@ func (p *ProductType) normalize() {
 	}
 }
 
+// ProductLine includes multiple product series.
 type ProductLine struct {
 	Name   string   `json:"ProductLineName"`
 	Image  string   `json:"ImageUrl"`
@@ -83,6 +87,7 @@ func (p *Series) normalize() {
 	}
 }
 
+// ProductShort is a short product description.
 type ProductShort struct {
 	ID              PID    `json:"ProductId"`
 	Key             string `json:"ProductKey"`
@@ -95,18 +100,21 @@ type ProductShort struct {
 
 func (p *ProductShort) normalize() {}
 
+// ModelInfo is a basic model info used in the model list.
 type ModelInfo struct {
 	Code    ModelCode `json:"ModelCode"`
 	Summary string    `json:"Summary"`
 	Updated Date      `json:"Updated"`
 }
 
+// Documentation is a reference to documentation resource.
 type Documentation struct {
 	ProductID PID    `json:"ProductId"`
 	Title     string `json:"DocTitle"`
 	URL       string `json:"DocLink"`
 }
 
+// Product is a full product information. It includes multiple models, which in turn list exact specifications.
 type Product struct {
 	ID              PID             `json:"ProductId"`
 	Key             string          `json:"ProductKey"`
@@ -135,6 +143,7 @@ func (p *Product) normalize() {
 	}
 }
 
+// UpdatedProduct is an information about product update used in the PSREF Updates info.
 type UpdatedProduct struct {
 	ID     PID    `json:"productId"`
 	Title  string `json:"title"`
@@ -191,6 +200,7 @@ func (upd *Updates) parse() {
 	}
 }
 
+// Book is a reference to a resource for users to read.
 type Book struct {
 	Title  string `json:"BookTitle"`
 	URL    string `json:"BookLink"`
@@ -198,19 +208,13 @@ type Book struct {
 	Remark string `json:"Remark"`
 }
 
+// KeyValue pair used in the model specifications.
 type KeyValue struct {
 	Name  string `json:"Name"`
 	Value string `json:"Value"`
 }
 
-type ModelProduct struct {
-	ID              PID    `json:"ProductId"`
-	Key             string `json:"ProductKey"`
-	Name            string `json:"Name"`
-	WithdrawnStatus int64  `json:"P_WdStatus"`
-	Image           string `json:"ImageForShare"`
-}
-
+// Model is a full model information, including exact specifications. Not all Product fields will be set.
 type Model struct {
 	Product
 	WithdrawnStatus int        `json:"M_WdStatus"`
@@ -219,6 +223,7 @@ type Model struct {
 	Code            ModelCode  `json:"ModelCode"`
 }
 
+// DetailByName searches a specification value by the key name.
 func (m *Model) DetailByName(name string) string {
 	for _, v := range m.Detail {
 		if v.Name == name {
@@ -226,10 +231,4 @@ func (m *Model) DetailByName(name string) string {
 		}
 	}
 	return ""
-}
-
-type SearchResult struct {
-	ID     PID    `json:"ProductId"`
-	Name   string `json:"ProductName"`
-	Models int    `json:"ModelCount"`
 }
